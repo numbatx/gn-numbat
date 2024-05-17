@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  numbat:
+    build:
+      context: ./
+      dockerfile: ./docker/numbat/Dockerfile
+
+    command: bash -c "cd ./cmd/node  && go run main.go --num-of-nodes 40 -port 4000 -tx-sign-sk "b5671723b8c64b16b3d4f5a2db9a2e3b61426e87c945b5453279f0701a10c70f" -sk "7964df79735f1ce9dff69cc2ec7c87e499a9fcab6808ee9ab4fc65443a9ff171"
+    ports:
+      - 8080:8080
+  numbat2:
+    build:
+      context: ./
+      dockerfile: ./docker/numbat/Dockerfile
+
+    command: bash -c "cd ./cmd/node && go run main.go --num-of-nodes 40  -port 4001 "
+    ports:
+      - 8081:8080
+  numbat3:
+    build:
+      context: ./
+      dockerfile: ./docker/numbat/Dockerfile
+
+    command: bash -c  "cd ./cmd/node && go run main.go --num-of-nodes 40  -port 4002 "
+    ports:
+      - 8082:8080
+  filebeat:
+    build: docker/filebeat
+    environment:
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      LOGSTASH_PORT: ${LOGSTASH_PORT}
+      INDEX: ${ELASTIC_INDEX}
+    volumes:
+    - ./docker/filebeat/filebeat.yml:/filebeat.yml
+    - ./docker/filebeat/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt
+    - ${NUMBAT_LOG_LOCATION}:/elogs
+    
